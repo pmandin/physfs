@@ -65,6 +65,13 @@ if(UNIX AND NOT WIN32 AND NOT APPLE)  # (MingW and such might be UNIX _and_ WIND
     endif()
 endif()
 
+if(MINT)
+    check_include_file(mint/metados.h HAVE_METADOS_H)
+    if(HAVE_METADOS_H)
+        add_definitions(-DPHYSFS_HAVE_METADOS_H=1)
+    endif()
+endif()
+
 if(PHYSFS_CPP_SRCS)
     enable_language(CXX)
 endif()

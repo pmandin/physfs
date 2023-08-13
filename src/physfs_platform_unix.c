@@ -57,6 +57,13 @@
 #include <sys/sysctl.h>
 #endif
 
+#ifdef PHYSFS_HAVE_METADOS_H
+#include <mint/cookie.h>
+#include <mint/cdromio.h>
+#include <mint/metados.h>
+#undef Malloc	/* FIXME: Caveat from MiNT system headers, conflict with allocator.Malloc() */
+#endif
+
 
 #include "physfs_internal.h"
 
@@ -70,6 +77,28 @@ void __PHYSFS_platformDeinit(void)
 {
     /* no-op */
 } /* __PHYSFS_platformDeinit */
+
+
+#if (defined PHYSFS_HAVE_METADOS_H)
+static int metados_mediaInDrive(int num_dev)
+{
+    metaopen_t metaopen;
+    int handle, retval = 0;
+
+    handle = Metaopen(num_dev, &metaopen);
+    if (handle==0) {
+        struct cdrom_subchnl info;
+        info.cdsc_format = CDROM_MSF;
+        if (Metaioctl(num_dev, METADOS_IOCTL_MAGIC, CDROMSUBCHNL, &info)==0) {
+            retval=1;
+        }
+
+        Metaclose(num_dev);
+    }
+
+    return(retval);
+}
+#endif
 
 
 void __PHYSFS_platformDetectAvailableCDs(PHYSFS_StringCallback cb, void *data)
@@ -144,6 +173,44 @@ void __PHYSFS_platformDetectAvailableCDs(PHYSFS_StringCallback cb, void *data)
     } /* while */
 
     fclose(mounts);
+
+#elif (defined PHYSFS_HAVE_METADOS_H)
+
+    metainit_t metainit={0,0,0,0};
+    char drive_str_tos[4] = "x:\\";
+    char drive_str_mint[3] = "/x";
+
+    Metainit(&metainit);
+    if (metainit.version && metainit.drives_map) {
+        unsigned char gemdos_dev[32];
+        unsigned long cookie_mint;
+        int i, mint_present;
+
+        /* Read Gemdos->Metados drive mapping */
+        memset(gemdos_dev, 0, sizeof(gemdos_dev));
+        for (i=0; i<32; i++) {
+            int metados_dev = metainit.info->log2phys[i];
+            if ((metados_dev>='A') && (metados_dev<='Z')) {
+                gemdos_dev[metados_dev - 'A'] = i + 'A';
+            }
+        }
+
+        mint_present = (Getcookie(C_MiNT, &cookie_mint) == C_FOUND);
+
+        for (i='A'; i<='Z'; i++) {
+            char *drive_str = (mint_present ? drive_str_mint : drive_str_tos);
+            drive_str[mint_present ? 1 : 0] = tolower(gemdos_dev[i-'A']);
+
+            if (!(metainit.drives_map & (1<<(i-'A')))) {
+                continue;
+            }
+            if (!metados_mediaInDrive(i)) {
+                continue;
+            }
+
+            cb(data, drive_str);
+        }
+    }
 #endif
 } /* __PHYSFS_platformDetectAvailableCDs */
 
