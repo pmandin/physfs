@@ -19,7 +19,9 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#if !defined(PHYSFS_PLATFORM_MINT)
 #include <pthread.h>
+#endif
 
 #include "physfs_internal.h"
 
@@ -372,6 +374,19 @@ int __PHYSFS_platformStat(const char *fname, PHYSFS_Stat *st, const int follow)
 } /* __PHYSFS_platformStat */
 
 
+#if (defined PHYSFS_PLATFORM_MINT)
+
+
+void *__PHYSFS_platformGetThreadID(void) { return((void *) 0x0001); }
+void *__PHYSFS_platformCreateMutex(void) { return((void *) 0x0001); }
+void __PHYSFS_platformDestroyMutex(void *mutex) {}
+int __PHYSFS_platformGrabMutex(void *mutex) { return(1); }
+void __PHYSFS_platformReleaseMutex(void *mutex) {}
+
+
+#else
+
+
 typedef struct
 {
     pthread_mutex_t mutex;
@@ -447,6 +462,8 @@ void __PHYSFS_platformReleaseMutex(void *mutex)
         } /* if */
     } /* if */
 } /* __PHYSFS_platformReleaseMutex */
+
+#endif  /* PHYSFS_PLATFORM_MINT */
 
 #endif  /* PHYSFS_PLATFORM_POSIX */
 
