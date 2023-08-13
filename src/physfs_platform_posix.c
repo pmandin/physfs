@@ -112,6 +112,11 @@ char *__PHYSFS_platformCalcUserDir(void)
     if (retval == NULL)
         retval = getUserDirByUID();
 
+    #if defined(PHYSFS_PLATFORM_MINT)
+    if (retval == NULL)
+        retval = strdup(".");
+    #endif
+
     return retval;
 } /* __PHYSFS_platformCalcUserDir */
 

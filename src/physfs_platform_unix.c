@@ -253,6 +253,12 @@ char *__PHYSFS_platformCalcBaseDir(const char *argv0)
 
     /* Try to avoid using argv0 unless forced to. Try system-specific stuff. */
 
+    #if defined(PHYSFS_PLATFORM_MINT)
+    if (strlen(argv0) == 0) {
+        return strdup(".");
+    }
+    #endif
+
     #if defined(PHYSFS_PLATFORM_FREEBSD)
     {
         char fullpath[PATH_MAX];
