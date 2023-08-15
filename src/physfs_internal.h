@@ -116,7 +116,8 @@ const void *__PHYSFS_winrtCalcPrefDir(void);
 __PHYSFS_COMPILE_TIME_ASSERT(LongEqualsInt, sizeof (int) == sizeof (long));
 #define __PHYSFS_ATOMIC_INCR(ptrval) _InterlockedIncrement((long*)(ptrval))
 #define __PHYSFS_ATOMIC_DECR(ptrval) _InterlockedDecrement((long*)(ptrval))
-#elif defined(__clang__) || (defined(__GNUC__) && (((__GNUC__ * 10000) + (__GNUC_MINOR__ * 100)) >= 40100))
+#elif defined(__clang__) || (defined(__GNUC__) && (((__GNUC__ * 10000) + (__GNUC_MINOR__ * 100)) >= 40100) \
+    && !defined(PHYSFS_PLATFORM_MINT))
 #define __PHYSFS_ATOMIC_INCR(ptrval) __sync_add_and_fetch(ptrval, 1)
 #define __PHYSFS_ATOMIC_DECR(ptrval) __sync_add_and_fetch(ptrval, -1)
 #elif defined(__WATCOMC__) && defined(__386__)
