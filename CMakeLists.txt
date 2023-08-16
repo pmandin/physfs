@@ -16,6 +16,7 @@ cmake_minimum_required(VERSION 3.5)
 project(PhysicsFS VERSION ${PHYSFS_VERSION} LANGUAGES C )
 
 include(GNUInstallDirs)
+include(CheckIncludeFile)
 
 # Increment this if/when we break backwards compatibility.
 set(PHYSFS_SOVERSION 1)
